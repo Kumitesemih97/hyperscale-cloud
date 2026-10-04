@@ -1,0 +1,70 @@
+# ==============================================================================
+# hyperscale-cloud .gitignore
+# Next.js 15 | React 19 | TypeScript | Tailwind | Node Test Runner | Antigravity
+# ==============================================================================
+
+# 1. Dependencies
+/node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# 2. Next.js & Build Outputs
+/.next/
+/out/
+/build/
+/.vercel
+
+# 3. TypeScript & Compilers
+*.tsbuildinfo
+# NOTE: DO NOT IGNORE next-env.d.ts! Must be committed for CI typecheck (npm run typecheck).
+
+# 4. Testing & Coverage (Node Test Runner / c8 / nyc)
+/coverage/
+/.nyc_output/
+/dist-test/
+test-results/
+
+# 5. Environment & Secrets (Fail-Safe Blanket Exclusion)
+.env*
+!.env.example
+!.env*.example
+.npmrc
+*.pem
+*.key
+*.crt
+*.pfx
+*.keystore
+
+# 6. Antigravity & Agent Ephemeral Registers (Git Churn Shield)
+# Rules 9 & 10: STATE.md and MEMORY.md are local O(1) registers.
+GATES.md
+STATE.md
+MEMORY.md
+.gemini/
+
+# 7. Logs & Debugging
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 8. OS & Editor Artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
