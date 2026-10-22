@@ -3,6 +3,7 @@ import "./globals.css";
 import { SpotlightProvider } from "@/components/common/SpotlightProvider";
 import { Navbar } from "@/components/navigation/Navbar";
 import { EnterpriseFooter } from "@/components/footer/EnterpriseFooter";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Aether Cloud — Hyperscale Infrastructure for Frontier AI",
@@ -40,6 +41,7 @@ export default function RootLayout({
           {children}
         </div>
         <EnterpriseFooter />
+        <Analytics />
       </body>
     </html>
   );

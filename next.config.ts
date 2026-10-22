@@ -5,11 +5,11 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js hydration scripts & client chunks
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com", // Next.js hydration scripts & Vercel Analytics runner
       "style-src 'self' 'unsafe-inline'",               // Tailwind CSS & inline style custom properties
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self'",
+      "connect-src 'self' https://va.vercel-scripts.com", // Telemetry beacons & event ingestion
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
