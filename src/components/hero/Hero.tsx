@@ -35,25 +35,25 @@ export function Hero() {
           {/* Left Column: Value Proposition & CTAs */}
           <div className="lg:col-span-7 space-y-8 text-left">
             {/* Apple Eyebrow Pill Badge */}
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#a1a1a6]">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#d1d1d6]">
               <span className="flex h-1.5 w-1.5 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#30d158] opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#30d158]" />
               </span>
               <span className="text-[#f5f5f7]">B200 SXM6 Online</span>
-              <span className="text-[#86868b]">•</span>
-              <span className="text-[#86868b]">3.2 Tbps Quantum-X800 Fabric</span>
+              <span className="text-[#a1a1a6]">•</span>
+              <span className="text-[#a1a1a6]">3.2 Tbps Quantum-X800 Fabric</span>
             </div>
 
             {/* Apple Keynote Headline: Two-Tone Typography */}
             <div className="space-y-4">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-[#f5f5f7] leading-[1.08]">
                 Aether Hyperscale. <br />
-                <span className="text-[#86868b]">
+                <span className="text-[#a1a1a6]">
                   Pro performance at planet scale.
                 </span>
               </h1>
-              <p className="text-base sm:text-lg text-[#86868b] max-w-2xl font-normal leading-relaxed">
+              <p className="text-base sm:text-lg text-[#a1a1a6] max-w-2xl font-normal leading-relaxed">
                 Architected from silicon up for distributed frontier AI and zero-downtime workloads.
                 Single-tenant bare metal, hardware-enforced confidential enclaves, and sub-millisecond
                 global optical routing across our private subsea fiber backbone.
@@ -74,13 +74,13 @@ export function Hero() {
                 href="#infrastructure"
                 className="apple-btn-secondary !px-5 !py-3 !text-sm"
               >
-                <Server className="w-4 h-4 text-[#86868b] mr-2" />
+                <Server className="w-4 h-4 text-[#a1a1a6] mr-2" />
                 <span>Architecture Matrix</span>
               </a>
             </div>
 
             {/* Feature Guarantees */}
-            <div className="pt-2 flex flex-wrap gap-y-2 gap-x-6 text-[12px] text-[#86868b]">
+            <div className="pt-2 flex flex-wrap gap-y-2 gap-x-6 text-[12px] text-[#a1a1a6]">
               <div className="flex items-center space-x-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#30d158]" />
                 <span>SOC 2 Type II & FedRAMP Ready</span>
@@ -114,14 +114,14 @@ export function Hero() {
                 {idx === 0 && <span className="w-1.5 h-1.5 rounded-full bg-[#30d158]" />}
               </div>
               <div className="text-[13px] font-medium text-[#f5f5f7]">{metric.label}</div>
-              <div className="text-[11px] text-[#86868b]">{metric.subtext}</div>
+              <div className="text-[11px] text-[#a1a1a6]">{metric.subtext}</div>
             </div>
           ))}
         </div>
 
         {/* Social Proof Enterprise Ticker */}
         <div className="mt-12 pt-8 border-t border-white/[0.06]">
-          <div className="text-[11px] font-medium text-[#86868b] uppercase tracking-wider text-center mb-6">
+          <div className="text-[11px] font-medium text-[#a1a1a6] uppercase tracking-wider text-center mb-6">
             Mission-Critical Infrastructure Trusted Worldwide
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
@@ -134,7 +134,7 @@ export function Hero() {
                   {cust.name}
                 </div>
                 <div className="text-[11px] text-[#2997ff] font-mono mt-0.5">{cust.tier}</div>
-                <div className="text-[11px] text-[#86868b] mt-0.5">{cust.workload}</div>
+                <div className="text-[11px] text-[#a1a1a6] mt-0.5">{cust.workload}</div>
               </div>
             ))}
           </div>

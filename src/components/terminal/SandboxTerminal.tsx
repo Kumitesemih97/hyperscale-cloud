@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { 
   IAC_SNIPPETS, 
   createSandboxFSM, 
@@ -16,7 +17,9 @@ import {
   Copy, 
   Check, 
   CheckCircle2, 
-  ChevronRight
+  ChevronRight,
+  Calculator,
+  ArrowRight
 } from "lucide-react";
 
 export function SandboxTerminal() {
@@ -25,11 +28,26 @@ export function SandboxTerminal() {
   const [terminalLines, setTerminalLines] = useState<string[]>(SIMULATED_DEPLOY_LOGS.idle);
   const [isCopied, setIsCopied] = useState(false);
   const fsmRef = useRef(createSandboxFSM(selectedTemplate));
+  
+  // Timer queue to prevent memory leaks and unmount corruption
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
+
+  const clearPendingTimers = () => {
+    timersRef.current.forEach((t) => clearTimeout(t));
+    timersRef.current = [];
+  };
+
+  useEffect(() => {
+    return () => {
+      clearPendingTimers();
+    };
+  }, []);
 
   const currentSnippet = IAC_SNIPPETS[selectedTemplate];
   const tokens = tokenizeCode(currentSnippet.code);
 
   const handleSelectTemplate = (template: IaCTemplate) => {
+    clearPendingTimers();
     setSelectedTemplate(template);
     fsmRef.current.send({ type: "SELECT_IAC", template });
     setFsmState("idle");
@@ -39,30 +57,35 @@ export function SandboxTerminal() {
   const handleDeploy = () => {
     if (fsmState === "planning" || fsmState === "provisioning" || fsmState === "verifying") return;
 
+    clearPendingTimers();
     fsmRef.current.send({ type: "DEPLOY" });
     setFsmState("planning");
     setTerminalLines(SIMULATED_DEPLOY_LOGS.planning);
 
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       fsmRef.current.send({ type: "TICK" });
       setFsmState("provisioning");
       setTerminalLines((prev) => [...prev, ...SIMULATED_DEPLOY_LOGS.provisioning]);
     }, 700);
+    timersRef.current.push(t1);
 
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       fsmRef.current.send({ type: "TICK" });
       setFsmState("verifying");
       setTerminalLines((prev) => [...prev, ...SIMULATED_DEPLOY_LOGS.verifying]);
     }, 1500);
+    timersRef.current.push(t2);
 
-    setTimeout(() => {
+    const t3 = setTimeout(() => {
       fsmRef.current.send({ type: "TICK" });
       setFsmState("ready");
       setTerminalLines((prev) => [...prev, ...SIMULATED_DEPLOY_LOGS.ready]);
     }, 2300);
+    timersRef.current.push(t3);
   };
 
   const handleReset = () => {
+    clearPendingTimers();
     fsmRef.current.send({ type: "RESET" });
     setFsmState("idle");
     setTerminalLines(SIMULATED_DEPLOY_LOGS.idle);
@@ -71,7 +94,8 @@ export function SandboxTerminal() {
   const handleCopy = () => {
     navigator.clipboard.writeText(currentSnippet.code);
     setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    const copyTimer = setTimeout(() => setIsCopied(false), 2000);
+    timersRef.current.push(copyTimer);
   };
 
   return (
@@ -79,14 +103,14 @@ export function SandboxTerminal() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header: Apple Keynote Style */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#86868b]">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#a1a1a6]">
             <Terminal className="w-3.5 h-3.5 text-[#2997ff]" />
             <span>Declarative Control</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.03em] text-[#f5f5f7]">
             Deploy in Seconds via Code.
           </h2>
-          <p className="text-base sm:text-lg text-[#86868b] leading-relaxed">
+          <p className="text-base sm:text-lg text-[#a1a1a6] leading-relaxed">
             Define multi-region AI superclusters, low-latency anycast routes, and zero-trust encryption
             with standard Terraform, Pulumi, or the Aether CLI.
           </p>
@@ -100,14 +124,16 @@ export function SandboxTerminal() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-[#161618]">
               {/* Traffic Lights & Template Tabs */}
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-1.5">
+                <div className="flex items-center space-x-1.5" aria-hidden="true">
                   <span className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50 inline-block" />
                   <span className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50 inline-block" />
                   <span className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]/50 inline-block" />
                 </div>
 
-                <div className="apple-segmented-track !p-1">
+                <div className="apple-segmented-track !p-1" role="tablist" aria-label="IaC Templates">
                   <button
+                    role="tab"
+                    aria-selected={selectedTemplate === "terraform"}
                     onClick={() => handleSelectTemplate("terraform")}
                     className={`apple-segmented-item !py-1 !px-3 !text-[11px] font-mono ${
                       selectedTemplate === "terraform" ? "active" : ""
@@ -116,6 +142,8 @@ export function SandboxTerminal() {
                     main.tf
                   </button>
                   <button
+                    role="tab"
+                    aria-selected={selectedTemplate === "pulumi"}
                     onClick={() => handleSelectTemplate("pulumi")}
                     className={`apple-segmented-item !py-1 !px-3 !text-[11px] font-mono ${
                       selectedTemplate === "pulumi" ? "active" : ""
@@ -124,6 +152,8 @@ export function SandboxTerminal() {
                     index.ts
                   </button>
                   <button
+                    role="tab"
+                    aria-selected={selectedTemplate === "cli"}
                     onClick={() => handleSelectTemplate("cli")}
                     className={`apple-segmented-item !py-1 !px-3 !text-[11px] font-mono ${
                       selectedTemplate === "cli" ? "active" : ""
@@ -138,7 +168,7 @@ export function SandboxTerminal() {
               <button
                 onClick={handleCopy}
                 className="apple-btn-secondary !px-2.5 !py-1 !text-[11px] font-mono"
-                aria-label="Copy IaC code snippet"
+                aria-label="Copy IaC code snippet to clipboard"
               >
                 {isCopied ? (
                   <>
@@ -147,18 +177,18 @@ export function SandboxTerminal() {
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5 mr-1 text-[#86868b]" />
+                    <Copy className="w-3.5 h-3.5 mr-1 text-[#a1a1a6]" />
                     <span>Copy</span>
                   </>
                 )}
               </button>
             </div>
 
-            {/* Code Body with Apple Xcode Syntax Highlighting */}
+            {/* Code Body with Apple Xcode Syntax Highlighting & WCAG Compliant Contrasts */}
             <div className="p-5 sm:p-6 overflow-x-auto text-[12px] font-mono leading-relaxed bg-[#0a0a0c] flex-1 max-h-[460px]">
               <div className="flex">
                 {/* Line numbers */}
-                <div className="select-none pr-4 text-[#48484a] text-right space-y-0.5 border-r border-white/[0.06] mr-4 shrink-0">
+                <div className="select-none pr-4 text-[#5e5e64] text-right space-y-0.5 border-r border-white/[0.06] mr-4 shrink-0" aria-hidden="true">
                   {currentSnippet.code.split("\n").map((_, i) => (
                     <div key={i}>{i + 1}</div>
                   ))}
@@ -171,9 +201,9 @@ export function SandboxTerminal() {
                     if (token.type === "keyword") colorClass = "text-[#ff7ab2] font-semibold"; // Xcode pink
                     else if (token.type === "string") colorClass = "text-[#fc6a5d]"; // Xcode red
                     else if (token.type === "property") colorClass = "text-[#5dd8ff]"; // Xcode cyan
-                    else if (token.type === "comment") colorClass = "text-[#6c7986] italic"; // Xcode comment
+                    else if (token.type === "comment") colorClass = "text-[#8e9aa8] italic"; // WCAG AA compliant comment
                     else if (token.type === "number") colorClass = "text-[#d0bf69]"; // Xcode gold
-                    else if (token.type === "punctuation") colorClass = "text-[#86868b]";
+                    else if (token.type === "punctuation") colorClass = "text-[#a1a1a6]";
 
                     return (
                       <span key={index} className={colorClass}>
@@ -205,7 +235,7 @@ export function SandboxTerminal() {
                     <span>ONLINE</span>
                   </span>
                 ) : fsmState === "idle" ? (
-                  <span className="px-2 py-0.5 rounded-full bg-white/[0.06] text-[#86868b] border border-white/10">STANDBY</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white/[0.06] text-[#a1a1a6] border border-white/10">STANDBY</span>
                 ) : (
                   <span className="px-2 py-0.5 rounded-full bg-[#2997ff]/20 text-[#2997ff] border border-[#2997ff]/30 animate-pulse">
                     {fsmState.toUpperCase()}...
@@ -214,7 +244,7 @@ export function SandboxTerminal() {
               </div>
             </div>
 
-            {/* Terminal Logs Output */}
+            {/* Terminal Logs Output with Auto-Anchor */}
             <div
               role="log"
               aria-live="polite"
@@ -226,7 +256,7 @@ export function SandboxTerminal() {
                 else if (line.startsWith("[APPLY]")) textStyle = "text-[#ffd60a]";
                 else if (line.startsWith("[VERIFY]")) textStyle = "text-[#ff9f0a]";
                 else if (line.includes("HEALTHY_ACTIVE")) textStyle = "text-[#30d158] font-semibold";
-                else if (line.startsWith("//")) textStyle = "text-[#6c7986]";
+                else if (line.startsWith("//")) textStyle = "text-[#8e9aa8]";
 
                 return (
                   <div key={idx} className={`${textStyle} transition-opacity`}>
@@ -234,6 +264,26 @@ export function SandboxTerminal() {
                   </div>
                 );
               })}
+
+              {/* Live Blinking Terminal Prompt */}
+              <div className="flex items-center gap-2 text-xs text-[#2997ff] pt-2">
+                <span>$ aether-agent &gt;</span>
+                <span className="inline-block w-2 h-4 bg-[#2997ff] animate-pulse" aria-hidden="true" />
+              </div>
+
+              {/* Unified Workflow Call-to-Action when Ready */}
+              {fsmState === "ready" && (
+                <div className="mt-4 pt-3 border-t border-white/10 animate-in fade-in duration-300">
+                  <Link
+                    href="/calculator?sku=b200-cluster"
+                    className="inline-flex items-center text-xs font-mono text-[#2997ff] hover:text-[#5dd8ff] transition-colors gap-1.5 bg-[#2997ff]/10 border border-[#2997ff]/30 px-3 py-1.5 rounded-lg"
+                  >
+                    <Calculator className="w-3.5 h-3.5" />
+                    <span>Estimate monthly TCO for this B200 deployment</span>
+                    <ArrowRight className="w-3 h-3 ml-0.5" />
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Terminal Control Actions Bar */}

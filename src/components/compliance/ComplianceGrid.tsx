@@ -97,14 +97,14 @@ export function ComplianceGrid() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#86868b]">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#a1a1a6]">
             <ShieldCheck className="w-3.5 h-3.5 text-[#30d158]" />
             <span>Trust & Compliance</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.03em] text-[#f5f5f7]">
             Enterprise Trust. Verified by Math.
           </h2>
-          <p className="text-base sm:text-lg text-[#86868b] leading-relaxed">
+          <p className="text-base sm:text-lg text-[#a1a1a6] leading-relaxed">
             Built to meet the uncompromising security, isolation, and audit requirements of defense,
             tier-1 banking, and frontier healthcare foundation models.
           </p>
@@ -121,7 +121,7 @@ export function ComplianceGrid() {
                 {pillar.icon}
               </div>
               <h3 className="text-[17px] font-semibold text-[#f5f5f7] tracking-tight">{pillar.title}</h3>
-              <p className="text-xs text-[#86868b] leading-relaxed">{pillar.description}</p>
+              <p className="text-xs text-[#a1a1a6] leading-relaxed">{pillar.description}</p>
             </div>
           ))}
         </div>
@@ -131,7 +131,7 @@ export function ComplianceGrid() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <div>
               <h3 className="text-xl font-semibold text-[#f5f5f7] tracking-tight">Active Regulatory Certifications</h3>
-              <p className="text-xs text-[#86868b] mt-1">
+              <p className="text-xs text-[#a1a1a6] mt-1">
                 Continuous independent audits and transparent compliance attestation reports.
               </p>
             </div>
@@ -158,14 +158,14 @@ export function ComplianceGrid() {
                       <span>{badge.status}</span>
                     </span>
                   </div>
-                  <p className="text-xs text-[#86868b] mt-2 leading-relaxed">
+                  <p className="text-xs text-[#a1a1a6] mt-2 leading-relaxed">
                     {badge.description}
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between text-[11px] font-mono text-[#86868b]">
+                <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between text-[11px] font-mono text-[#a1a1a6]">
                   <span>Standard:</span>
-                  <span className="text-[#a1a1a6]">{badge.auditStandard}</span>
+                  <span className="text-[#d1d1d6]">{badge.auditStandard}</span>
                 </div>
               </div>
             ))}

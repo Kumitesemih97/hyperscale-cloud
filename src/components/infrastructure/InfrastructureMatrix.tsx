@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { 
   Cpu, 
   HardDrive, 
@@ -10,7 +11,8 @@ import {
   Zap, 
   Activity,
   Layers,
-  Server
+  Server,
+  ChevronRight
 } from "lucide-react";
 
 type CategoryKey = "compute" | "storage" | "aiml" | "networking";
@@ -264,13 +266,13 @@ export function InfrastructureMatrix() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header: Apple Keynote Style */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#86868b]">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#a1a1a6]">
             <span>Architecture Matrix</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.03em] text-[#f5f5f7]">
             Engineered for Extreme Workloads.
           </h2>
-          <p className="text-base sm:text-lg text-[#86868b] leading-relaxed">
+          <p className="text-base sm:text-lg text-[#a1a1a6] leading-relaxed">
             Every layer stripped of legacy virtualization overhead and built from silicon to
             fiber for uncompromising speed, determinism, and scale.
           </p>
@@ -303,7 +305,7 @@ export function InfrastructureMatrix() {
         </div>
 
         {/* Tab Subtitle Banner */}
-        <div className="mt-6 text-center text-xs font-mono text-[#86868b] max-w-2xl mx-auto">
+        <div className="mt-6 text-center text-xs font-mono text-[#a1a1a6] max-w-2xl mx-auto">
           {category.subtitle}
         </div>
 
@@ -324,13 +326,13 @@ export function InfrastructureMatrix() {
                 <div className="inline-block px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/10 text-[10px] font-medium text-[#2997ff]">
                   {item.badge}
                 </div>
-                <p className="text-xs text-[#86868b] leading-relaxed">{item.description}</p>
+                <p className="text-xs text-[#a1a1a6] leading-relaxed">{item.description}</p>
 
                 {/* Specs Grid: Apple Inner Cards */}
                 <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.06]">
                   {item.specs.map((spec, sIdx) => (
                     <div key={sIdx} className="apple-inner-card p-2.5">
-                      <div className="text-[10px] text-[#86868b] font-mono">{spec.label}</div>
+                      <div className="text-[10px] text-[#a1a1a6] font-mono">{spec.label}</div>
                       <div className="text-xs font-medium text-[#f5f5f7] mt-0.5 tabular-numbers">{spec.value}</div>
                     </div>
                   ))}
@@ -338,11 +340,11 @@ export function InfrastructureMatrix() {
 
                 {/* Architecture Invariants */}
                 <div className="space-y-1.5 pt-2">
-                  <div className="text-[10px] font-medium text-[#86868b] uppercase tracking-wider">
+                  <div className="text-[10px] font-medium text-[#a1a1a6] uppercase tracking-wider">
                     Architectural Invariants
                   </div>
                   {item.architecture.map((arch, aIdx) => (
-                    <div key={aIdx} className="flex items-start space-x-2 text-xs text-[#a1a1a6]">
+                    <div key={aIdx} className="flex items-start space-x-2 text-xs text-[#d1d1d6]">
                       <Check className="w-3.5 h-3.5 text-[#30d158] mt-0.5 shrink-0" />
                       <span>{arch}</span>
                     </div>
@@ -350,12 +352,19 @@ export function InfrastructureMatrix() {
                 </div>
               </div>
 
-              {/* Benchmark Footnote */}
-              <div className="mt-6 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-[#86868b]">
-                <span className="flex items-center space-x-1.5">
-                  <Activity className="w-3.5 h-3.5 text-[#2997ff]" />
-                  <span>{item.benchmark}</span>
-                </span>
+              {/* Benchmark Footnote & Deep Link CTA */}
+              <div className="mt-6 pt-3 border-t border-white/[0.06] space-y-3">
+                <div className="flex items-center text-[11px] font-mono text-[#a1a1a6]">
+                  <Activity className="w-3.5 h-3.5 text-[#2997ff] mr-1.5 shrink-0" />
+                  <span className="truncate">{item.benchmark}</span>
+                </div>
+                <Link
+                  href={`/calculator?sku=${item.id}`}
+                  className="w-full apple-btn-secondary !py-2 !text-xs font-mono flex items-center justify-center gap-1.5 group-hover:border-[#2997ff]/40"
+                >
+                  <span>Configure & Estimate TCO</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-[#2997ff]" />
+                </Link>
               </div>
             </div>
           ))}

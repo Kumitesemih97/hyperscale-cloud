@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { calculateTCO, clampSpecs, type Specs } from "../pricing/tco.js";
 import { haversineDistance, calculateLatency, GLOBAL_POPS } from "../network/topology.js";
 import { createSandboxFSM, tokenizeCode } from "../sandbox/fsm.js";
+import { parseSpecsFromUrl, SKU_PRESETS } from "../pricing/presets.js";
 
 test("TCO Engine: calculation integrity and boundary clamps", () => {
   // Test zero boundary
@@ -75,4 +76,34 @@ test("Sandbox FSM: deterministic state transitions and AST tokenizer", () => {
   assert.ok(tokens.length > 0);
   assert.ok(tokens.every((t) => typeof t.type === "string" && typeof t.value === "string"));
   assert.ok(!tokens.some((t) => t.value.includes("<script>")));
+});
+
+test("Cross-Component Preset Engine: SKU mapping and URL hash parsing", () => {
+  const defaultSpecs: Specs = { vcpu: 64, gpuCount: 4, storageTb: 20, egressTb: 40 };
+
+  // Test known SKU preset mapping
+  assert.ok("b200-cluster" in SKU_PRESETS);
+  assert.equal(SKU_PRESETS["b200-cluster"].gpuCount, 8);
+  assert.equal(SKU_PRESETS["b200-cluster"].vcpu, 128);
+
+  // Test URL hash with sku param
+  const parsedSku = parseSpecsFromUrl("#calculator?sku=b200-cluster", defaultSpecs);
+  assert.equal(parsedSku.vcpu, 128);
+  assert.equal(parsedSku.gpuCount, 8);
+
+  // Test URL hash with explicit numeric overrides
+  const parsedExplicit = parseSpecsFromUrl("#calculator?vcpu=256&gpu=16&storage=50&egress=100", defaultSpecs);
+  assert.equal(parsedExplicit.vcpu, 256);
+  assert.equal(parsedExplicit.gpuCount, 16);
+  assert.equal(parsedExplicit.storageTb, 50);
+  assert.equal(parsedExplicit.egressTb, 100);
+
+  // Test boundary clamping on malicious/extreme params
+  const parsedClamped = parseSpecsFromUrl("#calculator?vcpu=999999&gpu=999999", defaultSpecs);
+  assert.equal(parsedClamped.vcpu, 1024);
+  assert.equal(parsedClamped.gpuCount, 64);
+
+  // Test fallback on empty/invalid string
+  const parsedEmpty = parseSpecsFromUrl("", defaultSpecs);
+  assert.deepEqual(parsedEmpty, defaultSpecs);
 });

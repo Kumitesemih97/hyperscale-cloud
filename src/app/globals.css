@@ -20,10 +20,10 @@
   --glass-nav-bg: rgba(10, 10, 12, 0.8);
   --glass-nav-blur: blur(24px) saturate(180%);
 
-  /* Apple Typography & Accents */
+  /* Apple Typography & Accents - WCAG AA Conforming */
   --apple-text-primary: #f5f5f7;
-  --apple-text-secondary: #a1a1a6;
-  --apple-text-muted: #86868b;
+  --apple-text-secondary: #d1d1d6;
+  --apple-text-muted: #a1a1a6;
   --apple-blue: #0071e3;
   --apple-blue-hover: #0077ed;
   --apple-blue-dark: #2997ff;
@@ -60,21 +60,55 @@ body {
   letter-spacing: -0.02em;
 }
 
-/* Apple Pro Bento Grid Tile */
+/* Apple Pro Bento Grid Tile with Hardware Spotlight */
 .apple-bento-card {
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: 22px;
   box-shadow: var(--specular-highlight), 0 8px 30px rgba(0, 0, 0, 0.45);
-  transition: all 0.3s var(--ease-apple);
+  transition: border-color 0.25s var(--ease-apple), transform 0.25s var(--ease-apple), box-shadow 0.25s var(--ease-apple);
   position: relative;
   overflow: hidden;
+}
+
+.apple-bento-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    500px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+    rgba(41, 151, 255, 0.08),
+    transparent 50%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.apple-bento-card:hover::before {
+  opacity: 1;
 }
 
 .apple-bento-card:hover {
   border-color: var(--border-hover);
   transform: translateY(-2px);
   box-shadow: var(--specular-highlight), 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Subsea Cable Optical Packet Pulse Animation */
+@keyframes cablePulse {
+  0% {
+    stroke-dashoffset: 200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.cable-pulse-line {
+  stroke-dasharray: 12 180;
+  animation: cablePulse 3.5s linear infinite;
 }
 
 /* Apple Sub-surface Card (inner cards inside bentos) */

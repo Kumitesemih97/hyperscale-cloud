@@ -13,12 +13,15 @@ import {
   ArrowRight, 
   Zap, 
   MapPin,
-  ChevronRight
+  ChevronRight,
+  Activity,
+  Layers
 } from "lucide-react";
 
 export function GlobalNetworkVisualizer() {
   const [sourcePoP, setSourcePoP] = useState<PoP>(GLOBAL_POPS[0]); // default IAD (Virginia)
   const [targetPoP, setTargetPoP] = useState<PoP>(GLOBAL_POPS[2]); // default FRA (Frankfurt)
+  const [isPinging, setIsPinging] = useState(false);
 
   // Calculate live ping between selected PoPs
   const calculatedPingMs = calculateLatency(sourcePoP, targetPoP);
@@ -40,19 +43,36 @@ export function GlobalNetworkVisualizer() {
     return { x, y };
   };
 
+  const handleTriggerPing = () => {
+    setIsPinging(true);
+    setTimeout(() => setIsPinging(false), 1200);
+  };
+
+  const handleNodeClick = (pop: PoP) => {
+    if (pop.code === sourcePoP.code) return;
+    setTargetPoP(pop);
+  };
+
+  const handleNodeKeyDown = (e: React.KeyboardEvent, pop: PoP) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleNodeClick(pop);
+    }
+  };
+
   return (
     <section className="py-24 border-b border-white/[0.06] relative" id="network">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header: Apple Keynote Style */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#86868b]">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-[12px] font-medium text-[#a1a1a6]">
             <Radio className="w-3.5 h-3.5 text-[#2997ff]" />
             <span>140+ Tbps Global Fabric</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.03em] text-[#f5f5f7]">
             Light-Speed Optical Transit.
           </h2>
-          <p className="text-base sm:text-lg text-[#86868b] leading-relaxed">
+          <p className="text-base sm:text-lg text-[#a1a1a6] leading-relaxed">
             Wholly owned trans-oceanic subsea cables and anycast border routing deliver deterministic,
             single-digit millisecond latency between any two major financial capitals.
           </p>
@@ -63,7 +83,7 @@ export function GlobalNetworkVisualizer() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Source Region Selector */}
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-[#86868b]">Origin:</span>
+              <span className="text-xs text-[#a1a1a6]">Origin:</span>
               <select
                 value={sourcePoP.code}
                 onChange={(e) => {
@@ -81,11 +101,11 @@ export function GlobalNetworkVisualizer() {
               </select>
             </div>
 
-            <ArrowRight className="w-3.5 h-3.5 text-[#86868b] hidden sm:inline" />
+            <ArrowRight className="w-3.5 h-3.5 text-[#a1a1a6] hidden sm:inline" />
 
             {/* Target Region Selector */}
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-[#86868b]">Destination:</span>
+              <span className="text-xs text-[#a1a1a6]">Destination:</span>
               <select
                 value={targetPoP.code}
                 onChange={(e) => {
@@ -102,18 +122,28 @@ export function GlobalNetworkVisualizer() {
                 ))}
               </select>
             </div>
+
+            {/* Test Ping Action Button */}
+            <button
+              onClick={handleTriggerPing}
+              className="apple-btn-secondary !px-3 !py-1 !text-xs font-mono flex items-center gap-1.5"
+              aria-label="Trigger optical ping transit test"
+            >
+              <Activity className={`w-3.5 h-3.5 text-[#30d158] ${isPinging ? "animate-spin" : ""}`} />
+              <span>{isPinging ? "Transmitting..." : "Test Route"}</span>
+            </button>
           </div>
 
           {/* Real-time Telemetry Indicator */}
           <div className="flex items-center space-x-6">
             <div className="text-right">
-              <div className="text-[10px] font-mono text-[#86868b] uppercase">Geodesic Distance</div>
+              <div className="text-[10px] font-mono text-[#a1a1a6] uppercase">Geodesic Distance</div>
               <div className="text-sm font-mono font-medium text-[#f5f5f7] tabular-numbers">
                 {calculatedDistanceKm.toLocaleString()} km
               </div>
             </div>
             <div className="text-right pl-5 border-l border-white/[0.08]">
-              <div className="text-[10px] font-mono text-[#86868b] uppercase">Optical RTT Latency</div>
+              <div className="text-[10px] font-mono text-[#a1a1a6] uppercase">Optical RTT Latency</div>
               <div className="text-xl font-mono font-semibold text-[#30d158] flex items-center justify-end gap-1.5 tabular-numbers">
                 <Zap className="w-4 h-4 fill-[#30d158]" />
                 <span>{calculatedPingMs} ms</span>
@@ -136,8 +166,16 @@ export function GlobalNetworkVisualizer() {
                 </pattern>
                 <linearGradient id="active-route-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#2997ff" />
+                  <stop offset="50%" stopColor="#5dd8ff" />
                   <stop offset="100%" stopColor="#30d158" />
                 </linearGradient>
+                <filter id="photonic-glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
               </defs>
               <rect width={mapWidth} height={mapHeight} fill="url(#net-grid)" />
 
@@ -161,14 +199,26 @@ export function GlobalNetworkVisualizer() {
                   (sourcePoP.code === cable.from && targetPoP.code === cable.to) ||
                   (sourcePoP.code === cable.to && targetPoP.code === cable.from);
 
+                const pathData = `M ${c1.x} ${c1.y} Q ${midX} ${midY} ${c2.x} ${c2.y}`;
+
                 return (
                   <g key={cable.id}>
+                    {/* Underlying static cable stratum */}
                     <path
-                      d={`M ${c1.x} ${c1.y} Q ${midX} ${midY} ${c2.x} ${c2.y}`}
+                      d={pathData}
                       fill="none"
                       stroke={isConnectedToSelected ? "url(#active-route-grad)" : "rgba(255, 255, 255, 0.12)"}
                       strokeWidth={isConnectedToSelected ? 2.5 : 1}
                       strokeDasharray={isConnectedToSelected ? "none" : "3 3"}
+                    />
+                    {/* High-velocity photonic optical packet pulse along cable */}
+                    <path
+                      d={pathData}
+                      fill="none"
+                      stroke={isConnectedToSelected ? "#5dd8ff" : "#2997ff"}
+                      strokeWidth={isConnectedToSelected ? 3 : 1.5}
+                      className="cable-pulse-line opacity-80"
+                      filter="url(#photonic-glow)"
                     />
                   </g>
                 );
@@ -185,9 +235,10 @@ export function GlobalNetworkVisualizer() {
                     d={`M ${c1.x} ${c1.y} Q ${midX} ${midY} ${c2.x} ${c2.y}`}
                     fill="none"
                     stroke="#30d158"
-                    strokeWidth="2"
+                    strokeWidth="2.5"
                     strokeDasharray="6 4"
                     className="animate-pulse"
+                    filter="url(#photonic-glow)"
                   />
                 );
               })()}
@@ -200,10 +251,12 @@ export function GlobalNetworkVisualizer() {
                 return (
                   <g
                     key={pop.id}
-                    className="cursor-pointer group"
-                    onClick={() => {
-                      if (pop.code !== sourcePoP.code) setTargetPoP(pop);
-                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${pop.name} datacenter (${pop.code.toUpperCase()}). Click to set destination.`}
+                    className="cursor-pointer group focus:outline-none"
+                    onClick={() => handleNodeClick(pop)}
+                    onKeyDown={(e) => handleNodeKeyDown(e, pop)}
                   >
                     {/* Pulsing ring for selected PoPs */}
                     {isSelected && (
@@ -226,13 +279,14 @@ export function GlobalNetworkVisualizer() {
                       fill={isSelected ? "#30d158" : "#f5f5f7"}
                       stroke="#000000"
                       strokeWidth="1.5"
+                      className="group-hover:scale-125 transition-transform"
                     />
 
-                    {/* Label */}
+                    {/* Label with improved contrast */}
                     <text
                       x={x + 8}
                       y={y + 3}
-                      fill={isSelected ? "#ffffff" : "#86868b"}
+                      fill={isSelected ? "#ffffff" : "#d1d1d6"}
                       fontSize="9"
                       fontFamily="SF Mono, monospace"
                       fontWeight={isSelected ? "bold" : "normal"}
@@ -244,6 +298,9 @@ export function GlobalNetworkVisualizer() {
                 );
               })}
             </svg>
+          </div>
+          <div className="mt-3 text-center text-xs text-[#a1a1a6] font-mono">
+            Click any datacenter node on map to instantly simulate optical transit latency
           </div>
         </div>
       </div>

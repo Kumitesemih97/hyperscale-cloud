@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { CommandSearch } from "./CommandSearch";
 import { 
   Globe, 
@@ -22,11 +24,77 @@ const REGIONS = [
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState(REGIONS[0]);
   const [isRegionDropdownOpen, setIsRegionDropdownOpen] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || (pathname ? pathname.startsWith(href) : false);
+  };
+
+  const productsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const productsContainerRef = useRef<HTMLDivElement>(null);
+  const regionContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleProductsEnter = () => {
+    if (productsTimeoutRef.current) {
+      clearTimeout(productsTimeoutRef.current);
+      productsTimeoutRef.current = null;
+    }
+    setIsProductsDropdownOpen(true);
+  };
+
+  const handleProductsLeave = () => {
+    if (productsTimeoutRef.current) {
+      clearTimeout(productsTimeoutRef.current);
+    }
+    productsTimeoutRef.current = setTimeout(() => {
+      setIsProductsDropdownOpen(false);
+    }, 150);
+  };
+
+  const toggleProductsDropdown = () => {
+    if (productsTimeoutRef.current) {
+      clearTimeout(productsTimeoutRef.current);
+      productsTimeoutRef.current = null;
+    }
+    setIsProductsDropdownOpen((prev) => !prev);
+  };
+
+  // Outside pointerdown and Escape key listener
+  useEffect(() => {
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (productsContainerRef.current && !productsContainerRef.current.contains(target)) {
+        setIsProductsDropdownOpen(false);
+      }
+      if (regionContainerRef.current && !regionContainerRef.current.contains(target)) {
+        setIsRegionDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsProductsDropdownOpen(false);
+        setIsRegionDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+      if (productsTimeoutRef.current) {
+        clearTimeout(productsTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Global Cmd+K / Ctrl+K shortcut listener
   useEffect(() => {
@@ -46,7 +114,7 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
           {/* Left: Brand Identity */}
           <div className="flex items-center space-x-7">
-            <a href="#" className="flex items-center space-x-2.5 group">
+            <Link href="/" className="flex items-center space-x-2.5 group">
               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white/[0.08] border border-white/15 p-0.5 group-hover:border-white/30 transition-all">
                 <div className="w-2 h-2 rounded-full bg-white group-hover:scale-110 transition-transform" />
               </div>
@@ -54,31 +122,57 @@ export function Navbar() {
                 <span className="text-[13px] tracking-tight font-semibold text-[#f5f5f7] group-hover:text-white transition-colors">
                   Aether
                 </span>
-                <span className="text-[11px] text-[#86868b] font-medium tracking-normal">
+                <span className="text-[11px] text-[#a1a1a6] font-medium tracking-normal">
                   Cloud
                 </span>
               </div>
-            </a>
+            </Link>
 
             {/* Navigation Links */}
             <nav className="hidden lg:flex items-center space-x-1" aria-label="Main Navigation">
               {/* Products Dropdown */}
-              <div className="relative" onMouseLeave={() => setIsProductsDropdownOpen(false)}>
+              <div
+                ref={productsContainerRef}
+                className="relative"
+                onMouseEnter={handleProductsEnter}
+                onMouseLeave={handleProductsLeave}
+              >
                 <button
-                  onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
-                  onMouseEnter={() => setIsProductsDropdownOpen(true)}
-                  className="flex items-center space-x-1 px-3 py-1 rounded-full text-[12px] text-[#86868b] hover:text-[#f5f5f7] hover:bg-white/[0.05] transition-colors"
+                  id="infrastructure-trigger"
+                  type="button"
+                  onClick={toggleProductsDropdown}
+                  className={`flex items-center space-x-1 px-3 py-1 rounded-full text-[12px] transition-colors focus:outline-none focus:ring-1 focus:ring-white/20 ${
+                    isActive("/infrastructure")
+                      ? "text-white bg-white/[0.1] font-medium"
+                      : "text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/[0.05]"
+                  }`}
+                  aria-haspopup="menu"
                   aria-expanded={isProductsDropdownOpen}
+                  aria-controls="infrastructure-menu"
                 >
                   <span>Infrastructure</span>
-                  <ChevronDown className="w-3 h-3 text-[#86868b] mt-0.5" />
+                  <ChevronDown
+                    className={`w-3 h-3 text-[#a1a1a6] mt-0.5 transition-transform duration-200 ${
+                      isProductsDropdownOpen ? "rotate-180 text-white" : ""
+                    }`}
+                  />
                 </button>
 
                 {isProductsDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-80 rounded-2xl bg-[#1c1c1e]/95 backdrop-blur-2xl border border-white/10 p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-100" style={{ boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 20px 50px rgba(0, 0, 0, 0.7)" }}>
+                  <div
+                    id="infrastructure-menu"
+                    role="menu"
+                    aria-labelledby="infrastructure-trigger"
+                    className="absolute left-0 mt-2 w-80 rounded-2xl bg-[#1c1c1e]/95 backdrop-blur-2xl border border-white/10 p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-100 before:absolute before:-top-3 before:left-0 before:w-full before:h-3 before:content-['']"
+                    style={{
+                      boxShadow:
+                        "inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 20px 50px rgba(0, 0, 0, 0.7)",
+                    }}
+                  >
                     <div className="space-y-1">
-                      <a
-                        href="#infrastructure"
+                      <Link
+                        href="/infrastructure"
+                        role="menuitem"
                         onClick={() => setIsProductsDropdownOpen(false)}
                         className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-white/[0.07] transition-colors group"
                       >
@@ -87,28 +181,30 @@ export function Navbar() {
                           <div className="text-[12px] font-medium text-[#f5f5f7] group-hover:text-[#2997ff]">
                             Accelerated AI Compute
                           </div>
-                          <div className="text-[11px] text-[#86868b]">
+                          <div className="text-[11px] text-[#a1a1a6]">
                             NVIDIA B200 SXM6 & H100 GPU clusters with InfiniBand fabric.
                           </div>
                         </div>
-                      </a>
-                      <a
-                        href="#infrastructure"
+                      </Link>
+                      <Link
+                        href="/infrastructure"
+                        role="menuitem"
                         onClick={() => setIsProductsDropdownOpen(false)}
                         className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-white/[0.07] transition-colors group"
                       >
-                        <Layers className="w-4 h-4 text-[#a1a1a6] mt-0.5 shrink-0" />
+                        <Layers className="w-4 h-4 text-[#d1d1d6] mt-0.5 shrink-0" />
                         <div>
                           <div className="text-[12px] font-medium text-[#f5f5f7] group-hover:text-white">
                             Exabyte Object & Block Storage
                           </div>
-                          <div className="text-[11px] text-[#86868b]">
+                          <div className="text-[11px] text-[#a1a1a6]">
                             Sub-millisecond NVMe-oF with zero replication lag.
                           </div>
                         </div>
-                      </a>
-                      <a
-                        href="#network"
+                      </Link>
+                      <Link
+                        href="/network"
+                        role="menuitem"
                         onClick={() => setIsProductsDropdownOpen(false)}
                         className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-white/[0.07] transition-colors group"
                       >
@@ -117,65 +213,85 @@ export function Navbar() {
                           <div className="text-[12px] font-medium text-[#f5f5f7] group-hover:text-[#30d158]">
                             140+ Tbps Global Backbone
                           </div>
-                          <div className="text-[11px] text-[#86868b]">
+                          <div className="text-[11px] text-[#a1a1a6]">
                             Subsea fiber direct interconnects and Layer 7 DDoS mitigation.
                           </div>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 )}
               </div>
 
-              <a
-                href="#terminal"
-                className="px-3 py-1 rounded-full text-[12px] text-[#86868b] hover:text-[#f5f5f7] hover:bg-white/[0.05] transition-colors"
+              <Link
+                href="/sandbox"
+                className={`px-3 py-1 rounded-full text-[12px] transition-colors ${
+                  isActive("/sandbox")
+                    ? "text-white bg-white/[0.1] font-medium"
+                    : "text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/[0.05]"
+                }`}
               >
                 IaC Sandbox
-              </a>
+              </Link>
 
-              <a
-                href="#network"
-                className="px-3 py-1 rounded-full text-[12px] text-[#86868b] hover:text-[#f5f5f7] hover:bg-white/[0.05] transition-colors"
+              <Link
+                href="/network"
+                className={`px-3 py-1 rounded-full text-[12px] transition-colors ${
+                  isActive("/network")
+                    ? "text-white bg-white/[0.1] font-medium"
+                    : "text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/[0.05]"
+                }`}
               >
                 Global Fabric
-              </a>
+              </Link>
 
-              <a
-                href="#calculator"
-                className="px-3 py-1 rounded-full text-[12px] text-[#86868b] hover:text-[#f5f5f7] hover:bg-white/[0.05] transition-colors"
+              <Link
+                href="/calculator"
+                className={`px-3 py-1 rounded-full text-[12px] transition-colors ${
+                  isActive("/calculator")
+                    ? "text-white bg-white/[0.1] font-medium"
+                    : "text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/[0.05]"
+                }`}
               >
                 TCO Estimator
-              </a>
+              </Link>
 
-              <a
-                href="#compliance"
-                className="px-3 py-1 rounded-full text-[12px] text-[#86868b] hover:text-[#f5f5f7] hover:bg-white/[0.05] transition-colors"
+              <Link
+                href="/security"
+                className={`px-3 py-1 rounded-full text-[12px] transition-colors ${
+                  isActive("/security")
+                    ? "text-white bg-white/[0.1] font-medium"
+                    : "text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-white/[0.05]"
+                }`}
               >
                 Trust & Security
-              </a>
+              </Link>
             </nav>
           </div>
 
           {/* Right Utility: Region, Search, Sign In, CTA */}
           <div className="hidden md:flex items-center space-x-3">
             {/* Region Selector Pill */}
-            <div className="relative">
+            <div ref={regionContainerRef} className="relative">
               <button
+                type="button"
                 onClick={() => setIsRegionDropdownOpen(!isRegionDropdownOpen)}
-                className="flex items-center space-x-2 px-2.5 py-1 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-[11px] text-[#86868b] hover:text-[#f5f5f7] transition-all"
+                className="flex items-center space-x-2 px-2.5 py-1 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-[11px] text-[#a1a1a6] hover:text-[#f5f5f7] transition-all focus:outline-none focus:ring-1 focus:ring-white/20"
                 aria-label="Active datacenter region selector"
                 aria-expanded={isRegionDropdownOpen}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-[#30d158]" />
                 <span className="font-mono text-[#f5f5f7]">{selectedRegion.code}</span>
-                <span className="text-[#86868b]">({selectedRegion.ping})</span>
-                <ChevronDown className="w-3 h-3 text-[#86868b]" />
+                <span className="text-[#a1a1a6]">({selectedRegion.ping})</span>
+                <ChevronDown className={`w-3 h-3 text-[#a1a1a6] transition-transform duration-200 ${isRegionDropdownOpen ? "rotate-180" : ""}`} />
               </button>
 
               {isRegionDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#1c1c1e]/95 backdrop-blur-2xl border border-white/10 p-2 shadow-2xl z-50" style={{ boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 20px 50px rgba(0, 0, 0, 0.7)" }}>
-                  <div className="text-[10px] font-mono text-[#86868b] uppercase px-3 py-1.5">
+                <div
+                  className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#1c1c1e]/95 backdrop-blur-2xl border border-white/10 p-2 shadow-2xl z-50 before:absolute before:-top-3 before:left-0 before:w-full before:h-3 before:content-['']"
+                  style={{ boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 20px 50px rgba(0, 0, 0, 0.7)" }}
+                >
+                  <div className="text-[10px] font-mono text-[#a1a1a6] uppercase px-3 py-1.5">
                     Active Edge Region
                   </div>
                   {REGIONS.map((r) => (
@@ -189,7 +305,7 @@ export function Navbar() {
                     >
                       <div>
                         <div className="text-[#f5f5f7] font-medium text-[12px]">{r.name}</div>
-                        <div className="text-[10px] font-mono text-[#86868b]">{r.code}</div>
+                        <div className="text-[10px] font-mono text-[#a1a1a6]">{r.code}</div>
                       </div>
                       <span className="font-mono text-[#30d158] text-[11px]">{r.ping}</span>
                     </button>
@@ -201,32 +317,32 @@ export function Navbar() {
             {/* Search Trigger Pill */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-[12px] text-[#86868b] hover:text-[#f5f5f7] transition-all"
+              className="flex items-center space-x-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-[12px] text-[#a1a1a6] hover:text-[#f5f5f7] transition-all"
               aria-label="Search cloud resources (Cmd+K)"
             >
               <Search className="w-3.5 h-3.5" />
               <span>Search</span>
-              <kbd className="hidden lg:inline-block px-1.5 py-0.2 text-[10px] font-mono bg-white/[0.08] rounded text-[#a1a1a6]">
+              <kbd className="hidden lg:inline-block px-1.5 py-0.2 text-[10px] font-mono bg-white/[0.08] rounded text-[#d1d1d6]">
                 ⌘K
               </kbd>
             </button>
 
             {/* Console Login */}
-            <a
-              href="#terminal"
-              className="px-2.5 py-1 text-[12px] text-[#86868b] hover:text-[#f5f5f7] font-normal transition-colors"
+            <Link
+              href="/sandbox"
+              className="px-2.5 py-1 text-[12px] text-[#a1a1a6] hover:text-[#f5f5f7] font-normal transition-colors"
             >
               Sign In
-            </a>
+            </Link>
 
             {/* Primary Action CTA: Apple White Pill */}
-            <a
-              href="#calculator"
+            <Link
+              href="/calculator"
               className="apple-btn-primary"
             >
               <span>Deploy</span>
               <ChevronRight className="w-3.5 h-3.5 ml-1" />
-            </a>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -252,51 +368,61 @@ export function Navbar() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-b border-white/10 bg-[#121215]/95 backdrop-blur-2xl px-4 py-4 space-y-3">
             <div className="space-y-1">
-              <a
-                href="#infrastructure"
+              <Link
+                href="/infrastructure"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm text-[#f5f5f7] hover:bg-white/5"
+                className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
+                  isActive("/infrastructure") ? "text-white bg-white/10 font-medium" : "text-[#f5f5f7] hover:bg-white/5"
+                }`}
               >
                 Infrastructure Matrix
-              </a>
-              <a
-                href="#terminal"
+              </Link>
+              <Link
+                href="/sandbox"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm text-[#f5f5f7] hover:bg-white/5"
+                className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
+                  isActive("/sandbox") ? "text-white bg-white/10 font-medium" : "text-[#f5f5f7] hover:bg-white/5"
+                }`}
               >
                 IaC Terminal Sandbox
-              </a>
-              <a
-                href="#network"
+              </Link>
+              <Link
+                href="/network"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm text-[#f5f5f7] hover:bg-white/5"
+                className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
+                  isActive("/network") ? "text-white bg-white/10 font-medium" : "text-[#f5f5f7] hover:bg-white/5"
+                }`}
               >
                 Global Fiber Network
-              </a>
-              <a
-                href="#calculator"
+              </Link>
+              <Link
+                href="/calculator"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm text-[#f5f5f7] hover:bg-white/5"
+                className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
+                  isActive("/calculator") ? "text-white bg-white/10 font-medium" : "text-[#f5f5f7] hover:bg-white/5"
+                }`}
               >
                 TCO Cost Estimator
-              </a>
-              <a
-                href="#compliance"
+              </Link>
+              <Link
+                href="/security"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-xl text-sm text-[#f5f5f7] hover:bg-white/5"
+                className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
+                  isActive("/security") ? "text-white bg-white/10 font-medium" : "text-[#f5f5f7] hover:bg-white/5"
+                }`}
               >
                 Trust & Security
-              </a>
+              </Link>
             </div>
 
             <div className="pt-3 border-t border-white/10 flex flex-col space-y-2">
-              <a
-                href="#calculator"
+              <Link
+                href="/calculator"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="apple-btn-primary w-full text-center"
               >
                 Deploy Instance ($300 Credit)
-              </a>
+              </Link>
             </div>
           </div>
         )}
